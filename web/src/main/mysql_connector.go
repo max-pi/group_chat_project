@@ -36,8 +36,6 @@ func homePage(res http.ResponseWriter, req *http.Request) {
 // api db methods
 func get_group_all() []Group {
 
-  log.Printf("groups")
-
   db := get_db();
 
   // list of all the groups
@@ -62,8 +60,6 @@ func get_group_all() []Group {
       log.Printf(err.Error())
       return []Group{}
     }
-
-    log.Printf(name)
 
     result = append(result, Group{id, name})
   }
@@ -90,6 +86,47 @@ func get_group_with_id(group_id int) Group {
 
   return Group{id, name};
 }
+
+func create_group(name string) {
+  db := get_db();
+
+  _, err := db.Exec("insert into messenger_group (name) values (?)", name)
+  if err != nil {
+  	log.Fatal(err.Error())
+  }
+
+}
+
+func delete_group(group_id int) {
+  db := get_db()
+
+  _, err := db.Exec("delete from messenger_group where id = ?", group_id)
+  if err != nil {
+  	log.Fatal(err.Error())
+  }
+
+}
+
+func create_user(name string) {
+  db := get_db();
+
+  _, err := db.Exec("insert into user (name) values (?)", name)
+  if err != nil {
+  	log.Fatal(err.Error())
+  }
+
+}
+
+func join_group(group_id int, user_id int) {
+  db := get_db();
+
+  _, err := db.Exec("insert into user_group (message_group_id, user_id) values (?, ?)", group_id, user_id)
+  if err != nil {
+    log.Fatal(err.Error())
+  }
+
+}
+
 
 
 // setup methods

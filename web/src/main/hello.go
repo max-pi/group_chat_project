@@ -26,11 +26,6 @@ func handler_app_link(w http.ResponseWriter, r *http.Request) {
 
 func handler_group_all(w http.ResponseWriter, r *http.Request) {
 
-    // if r.Method != "POST" {
-    //     //http.ServeFile(res, req, "signup.html")
-    //     return
-    // }
-
     all_groups := get_group_all()
 
     text, err := json.Marshal(all_groups)
@@ -44,17 +39,17 @@ func handler_group_all(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group(w http.ResponseWriter, r *http.Request) {
-  if r.Method != "POST" {
-    // only allow POST requests
-    return
-  }
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
 
     r.ParseForm()
     group_id := r.PostFormValue("group_id")
     group_id_int, err := strconv.Atoi(group_id)
 
-    fmt.Fprintf(w, "yoyo")
-    fmt.Fprintf(w, string(group_id_int))
+    decoder := json.NewDecoder(r.Body)
+    decoder.Decode(&group_id_int)
 
     group := get_group_with_id(group_id_int)
 
@@ -65,9 +60,9 @@ func handler_group(w http.ResponseWriter, r *http.Request) {
       return
     }
 
+    // show the group info
     fmt.Fprintf(w, string(text))
 }
-
 
 
 func main() {
