@@ -48,15 +48,15 @@ func handler_group(w http.ResponseWriter, r *http.Request) {
     group_id := r.PostFormValue("group_id")
     group_id_int, err := strconv.Atoi(group_id)
 
-    decoder := json.NewDecoder(r.Body)
-    decoder.Decode(&group_id_int)
+    // decoder := json.NewDecoder(r.Body)
+    // decoder.Decode(&group_id_int)
 
     group := get_group_with_id(group_id_int)
 
     text, err := json.Marshal(group)
 
     if (err != nil) {
-      // rip
+      log.Fatal(err.Error())
       return
     }
 
@@ -64,6 +64,121 @@ func handler_group(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, string(text))
 }
 
+func handler_group_new(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    group_name := r.PostFormValue("group_name")
+
+    create_group(group_name)
+}
+
+func handler_group_delete(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    group_id := r.PostFormValue("group_id")
+    group_id_int, err := strconv.Atoi(group_id)
+
+    if (err != nil) {
+      log.Fatal(err.Error())
+      return
+    }
+
+    delete_group(group_id_int)
+}
+
+func handler_group_join(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    group_id := r.PostFormValue("group_id")
+    group_id_int, err := strconv.Atoi(group_id)
+
+    user_id := r.PostFormValue("user_id")
+    user_id_int, err := strconv.Atoi(user_id)
+
+    if (err != nil) {
+      log.Fatal(err.Error())
+      return
+    }
+
+    join_group(group_id_int, user_id_int)
+}
+
+func handler_group_kick(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    group_id := r.PostFormValue("group_id")
+    group_id_int, err := strconv.Atoi(group_id)
+
+    user_id := r.PostFormValue("user_id")
+    user_id_int, err := strconv.Atoi(user_id)
+
+    if (err != nil) {
+      log.Fatal(err.Error())
+      return
+    }
+
+    kick_user(group_id_int, user_id_int)
+}
+
+
+func handler_user_new(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    user_name := r.PostFormValue("user_name")
+
+    if (err != nil) {
+      log.Fatal(err.Error())
+      return
+    }
+
+    create_user(user_name)
+
+}
+
+// func handler_group_kick(w http.ResponseWriter, r *http.Request) {
+//     if r.Method != "POST" {
+//       // only allow POST requests
+//       return
+//     }
+//
+//     r.ParseForm()
+//     group_id := r.PostFormValue("group_id")
+//     group_id_int, err := strconv.Atoi(group_id)
+//
+//     user_id := r.PostFormValue("user_id")
+//     group_id_int, err := strconv.Atoi(group_id)
+//
+//     if (err != nil) {
+//       log.Fatal(err.Error())
+//       return
+//     }
+//
+//     delete_group(group_id_int)
+// }
+
+
+
+// startup
 
 func main() {
     var ssl_path = "/var/www/group_chat_project/web/private/ssl/"
@@ -79,18 +194,26 @@ func main() {
     // group info
     http.HandleFunc("/group/all", handler_group_all)
     http.HandleFunc("/group/", handler_group)
-    //
-    // // creates new group
-    // http.HandleFunc("/group/new", handler_group_new)
-    //
+
+    // creates new group
+    http.HandleFunc("/group/new", handler_group_new)
+
+    // deletes group
+    http.HandleFunc("/group/delete", handler_group_delete)
+
+
     // // send message to group
     // http.HandleFunc("/group/send", handler_group_send)
     //
-    // // add person to group
-    // http.HandleFunc("/group/join", handler_group_join)
-    //
-    // // remove person from group
-    // http.HandleFunc("/group/kick", handler_group_kick)
+    // add person to group
+    http.HandleFunc("/group/join", handler_group_join)
+
+    // remove person from group
+    http.HandleFunc("/group/kick", handler_group_kick)
+
+    // create new user
+    http.HandleFunc("/user/new", handler_user_new)
+
 
     err := http.ListenAndServeTLS(":443", crt, key, nil)
 

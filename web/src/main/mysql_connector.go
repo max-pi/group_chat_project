@@ -90,7 +90,7 @@ func get_group_with_id(group_id int) Group {
 func create_group(name string) {
   db := get_db();
 
-  _, err := db.Exec("insert into messenger_group (name) values (?)", name)
+  _, err := db.Exec("insert into message_group (name) values (?)", name)
   if err != nil {
   	log.Fatal(err.Error())
   }
@@ -100,7 +100,7 @@ func create_group(name string) {
 func delete_group(group_id int) {
   db := get_db()
 
-  _, err := db.Exec("delete from messenger_group where id = ?", group_id)
+  _, err := db.Exec("delete from message_group where id = ?", group_id)
   if err != nil {
   	log.Fatal(err.Error())
   }
@@ -121,6 +121,16 @@ func join_group(group_id int, user_id int) {
   db := get_db();
 
   _, err := db.Exec("insert into user_group (message_group_id, user_id) values (?, ?)", group_id, user_id)
+  if err != nil {
+    log.Fatal(err.Error())
+  }
+
+}
+
+func kick_user(group_id int, user_id int) {
+  db := get_db();
+
+  _, err := db.Exec("delete from user_group where group_id = ? and user_id = ?", group_id, user_id)
   if err != nil {
     log.Fatal(err.Error())
   }
