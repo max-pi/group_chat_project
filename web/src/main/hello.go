@@ -48,9 +48,6 @@ func handler_group(w http.ResponseWriter, r *http.Request) {
     group_id := r.PostFormValue("group_id")
     group_id_int, err := strconv.Atoi(group_id)
 
-    // decoder := json.NewDecoder(r.Body)
-    // decoder.Decode(&group_id_int)
-
     group := get_group_with_id(group_id_int)
 
     text, err := json.Marshal(group)
