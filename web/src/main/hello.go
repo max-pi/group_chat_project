@@ -155,26 +155,55 @@ func handler_user_new(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func handler_group_kick(w http.ResponseWriter, r *http.Request) {
-//     if r.Method != "POST" {
-//       // only allow POST requests
-//       return
-//     }
-//
-//     r.ParseForm()
-//     group_id := r.PostFormValue("group_id")
-//     group_id_int, err := strconv.Atoi(group_id)
-//
-//     user_id := r.PostFormValue("user_id")
-//     group_id_int, err := strconv.Atoi(group_id)
-//
-//     if (err != nil) {
-//       log.Fatal(err.Error())
-//       return
-//     }
-//
-//     delete_group(group_id_int)
-// }
+func handler_group_messages(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    group_id := r.PostFormValue("group_id")
+    group_id_int, err := strconv.Atoi(group_id)
+
+    if (err != nil) {
+      log.Fatal(err.Error())
+      return
+    }
+
+    all_messages := get_messages(group_id_int)
+
+    text, err := json.Marshal(all_messages)
+
+    if (err != nil) {
+      // rip
+      return
+    }
+
+    fmt.Fprintf(w, string(text))
+}
+
+func handler_group_messages_send(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+      // only allow POST requests
+      return
+    }
+
+    r.ParseForm()
+    body := r.PostFormValue("body")
+
+    group_id := r.PostFormValue("group_id")
+    group_id_int, err := strconv.Atoi(group_id)
+
+    user_id := r.PostFormValue("user_id")
+    user_id_int, err := strconv.Atoi(user_id)
+
+    if (err != nil) {
+      log.Fatal(err.Error())
+      return
+    }
+
+    create_message(body, group_id_int, user_id_int)
+}
 
 
 
@@ -201,6 +230,11 @@ func main() {
     // deletes group
     http.HandleFunc("/group/delete", handler_group_delete)
 
+    // get messages in a group
+    http.HandleFunc("/group/messages", handler_group_messages)
+
+    // create message in a group
+    http.HandleFunc("/group/messages/send", handler_group_messages_send)
 
     // // send message to group
     // http.HandleFunc("/group/send", handler_group_send)

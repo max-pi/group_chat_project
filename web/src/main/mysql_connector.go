@@ -22,6 +22,13 @@ type User struct {
   FBID string
 }
 
+type Message struct {
+  Id int
+  Body string
+  GroupId int
+  UserId int
+}
+
 
 
 
@@ -44,7 +51,6 @@ func get_group_all() []Group {
   rows, errs := db.Query("select * from message_group")
 
   if(errs != nil) {
-    // rip
     return []Group{}
   }
 
@@ -56,9 +62,7 @@ func get_group_all() []Group {
 
     err := rows.Scan(&id, &name, &icon)
     if (err != nil) {
-      // rip
       log.Printf(err.Error())
-      return []Group{}
     }
 
     result = append(result, Group{id, name})
@@ -78,11 +82,6 @@ func get_group_with_id(group_id int) Group {
   var icon *string;
 
   db.QueryRow("select * from message_group where id = ?", group_id).Scan(&id, &name, &icon)
-
-  // if (err != nil) {
-  //   log.Printf(err.Error())
-  //   return Group{0, "error"}
-  // }
 
   return Group{id, name};
 }
@@ -131,6 +130,46 @@ func kick_user(group_id int, user_id int) {
   db := get_db();
 
   _, err := db.Exec("delete from user_group where group_id = ? and user_id = ?", group_id, user_id)
+  if err != nil {
+    log.Fatal(err.Error())
+  }
+
+}
+
+func get_messages(group_id int) []Message {
+  db := get_db();
+
+  // list of all the groups
+  var result []Message;
+
+  rows, errs := db.Query("select * from message where message_group_id = ?", group_id)
+
+  if(errs != nil) {
+    // rip
+    return []Message{}
+  }
+
+  for rows.Next() {
+
+    var id int;
+    var body string;
+    var group_id int;
+    var user_id int;
+
+    err := rows.Scan(&id, &body, &group_id, &user_id)
+    if (err != nil) {
+      log.Printf(err.Error())
+    }
+
+    result = append(result, Message{id, body, group_id, user_id})
+  }
+
+  return result;
+}
+
+func create_message(body string, group_id int, user_id int) {
+
+  _, err := db.Exec("insert into message (body, message_group_id, user_id) values (?,?,?)", body, group_id, user_id)
   if err != nil {
     log.Fatal(err.Error())
   }
