@@ -6,6 +6,7 @@ import (
     "log"
     "strconv"
     "encoding/json"
+    "strings"
 )
 
 
@@ -38,14 +39,15 @@ func handler_group_all(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, string(text))
 }
 
-func handler_group(w http.ResponseWriter, r *http.Request) {
-    if r.Method != "POST" {
+func handler_group_one(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "GET" {
       // only allow POST requests
       return
     }
 
-    r.ParseForm()
-    group_id := r.PostFormValue("group_id")
+    params := strings.Split(r.URL.Path,"/")
+
+    group_id := params[len(params)-1]
     group_id_int, err := strconv.Atoi(group_id)
 
     group := get_group_with_id(group_id_int)
@@ -202,6 +204,13 @@ func handler_group_messages_send(w http.ResponseWriter, r *http.Request) {
     create_message(body, group_id_int, user_id_int)
 }
 
+func getURLParam(path string, prefix string) []string {
+  // currently returns trailing param, int only
+  s := strings.SplitAfter(path, prefix)
+  return s
+}
+
+
 
 
 // startup
@@ -219,7 +228,7 @@ func main() {
 
     // group info
     http.HandleFunc("/group/all", handler_group_all)
-    http.HandleFunc("/group/", handler_group)
+    http.HandleFunc("/group/", handler_group_one)
 
     // creates new group
     http.HandleFunc("/group/new", handler_group_new)
