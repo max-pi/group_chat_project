@@ -12,9 +12,8 @@ GET
 GET
 *link to the app in the google play store*
 
-/group
-POST
-group_id
+/group/{group_id}
+GET
 *info about a group*
 
 /group/all
