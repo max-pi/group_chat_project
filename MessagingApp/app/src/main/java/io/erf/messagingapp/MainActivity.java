@@ -34,36 +34,47 @@ public class MainActivity extends AppCompatActivity {
         final Button button = (Button) findViewById(R.id.my_groups_button);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                MakeRequest();
+                getGroups();
             }
         });
     }
 
+    public interface VolleyCallback{
+        void onSuccess(JSONArray result);
+    }
+    
 
-    private void MakeRequest(){
+    private void getGroups() {
+        MakeRequest("https://erf.io/group/all", new VolleyCallback() {
+            @Override
+            public void onSuccess(JSONArray response) {
+                ArrayList<MessagingGroup> GroupList = new ArrayList<MessagingGroup>();
+                for (int i = 0; i < response.length(); i++) {
+                    MessagingGroup grp = new MessagingGroup();
+                    try {
+                        grp.id = response.getJSONObject(i).getString("Id");
+                        grp.name = response.getJSONObject(i).getString("Name");
+                    } catch (JSONException e) {
+                        System.out.println(e);
+                    }
+                    GroupList.add(grp);
+                }
+            }
+        });
+    }
+
+    private void MakeRequest(String url, final VolleyCallback callback){
         System.out.println("Clicked!");
         final TextView mTxtDisplay;
         ImageView mImageView;
         mTxtDisplay = (TextView) findViewById(R.id.txtDisplay);
-        String url = "https://jsonplaceholder.typicode.com/users";
 
         JsonArrayRequest jsArrRequest = new JsonArrayRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
 
                     @Override
                     public void onResponse(JSONArray response) {
-                        System.out.println("Got Here!");
-                        ArrayList<MessagingGroup> GroupList = new ArrayList<MessagingGroup>();
-                        for (int i=0; i< response.length(); i++) {
-                            MessagingGroup grp = new MessagingGroup();
-                            try {
-                                grp.id = response.getJSONObject(i).getString("id");
-                                grp.name = response.getJSONObject(i).getString("name");
-                            } catch (JSONException e){
-                                System.out.println(e);
-                            }
-                            GroupList.add(grp);
-                        }
+                        callback.onSuccess(response);
                     }
                 }, new Response.ErrorListener() {
                     public void onErrorResponse(VolleyError error) {
@@ -74,8 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                     }
-                }
-                );
+                });
         Volley.newRequestQueue(this).add(jsArrRequest);
     }
 }
