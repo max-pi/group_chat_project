@@ -2,6 +2,7 @@ package io.erf.messagingapp;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -59,9 +60,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                     GroupList.add(grp);
                 }
+            Intent intent = new Intent(MainActivity.this, MyGroupsActivity.class);
+            intent.putExtra("GROUPS", GroupList);
+            startActivity(intent);
             }
+
         });
     }
+
 
     private void MakeRequest(String url, final VolleyCallback callback){
         System.out.println("Clicked!");
