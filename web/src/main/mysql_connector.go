@@ -17,9 +17,8 @@ type Group struct {
 }
 
 type User struct {
-  Id int
+  UserId int64
   Name string
-  FBID string
 }
 
 type Message struct {
@@ -106,14 +105,27 @@ func delete_group(group_id int) {
 
 }
 
-func create_user(name string) {
+func create_user(name string) User {
   db := get_db();
 
-  _, err := db.Exec("insert into user (name) values (?)", name)
+  result, err := db.Exec("insert into user (name) values (?)", name)
+  if err != nil {
+  	log.Fatal(err.Error())
+  }
+  user_id, _ := result.LastInsertId();
+
+  return User{user_id, name};
+}
+
+func rename_user(user_id int64, name string) User {
+  db := get_db();
+
+  _, err := db.Exec("update user set name = ? where id = ?", name, user_id)
   if err != nil {
   	log.Fatal(err.Error())
   }
 
+  return User{user_id, name};
 }
 
 func join_group(group_id int, user_id int) {
@@ -129,7 +141,7 @@ func join_group(group_id int, user_id int) {
 func kick_user(group_id int, user_id int) {
   db := get_db();
 
-  _, err := db.Exec("delete from user_group where group_id = ? and user_id = ?", group_id, user_id)
+  _, err := db.Exec("delete from user_group where message_group_id = ? and user_id = ?", group_id, user_id)
   if err != nil {
     log.Fatal(err.Error())
   }

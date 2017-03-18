@@ -9,7 +9,6 @@ import (
     "strings"
 )
 
-
 // handlers for the api calls
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -120,38 +119,71 @@ func handler_group_kick(w http.ResponseWriter, r *http.Request) {
       return
     }
 
-    r.ParseForm()
-    group_id := r.PostFormValue("group_id")
-    group_id_int, err := strconv.Atoi(group_id)
+    decoder := json.NewDecoder(r.Body)
 
-    user_id := r.PostFormValue("user_id")
-    user_id_int, err := strconv.Atoi(user_id)
+    datas := []struct {
+      GroupId int
+      UserId int
+    }{}
 
-    if (err != nil) {
-      log.Fatal(err.Error())
-      return
+    err := decoder.Decode(&datas)
+
+    if(err != nil) {
+      fmt.Fprintf(w, string(err.Error()))
     }
 
-    kick_user(group_id_int, user_id_int)
+    data := datas[0]
+
+    kick_user(data.GroupId, data.UserId)
 }
 
 
-func handler_user_new(w http.ResponseWriter, r *http.Request) {
+func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
     if r.Method != "POST" {
       // only allow POST requests
       return
     }
 
-    r.ParseForm()
-    user_name := r.PostFormValue("user_name")
+    decoder := json.NewDecoder(r.Body)
+    var users []User
+    err := decoder.Decode(&users)
 
+    if(err != nil) {
+      fmt.Fprintf(w, string(err.Error()))
+    }
+
+    user := users[0]
+
+    if(user.UserId > -1) {
+      // rename a user
+
+      user := rename_user(user.UserId, user.Name)
+
+      text, err := json.Marshal([]User{user})
+      if (err != nil) {
+        // rip
+        return
+      }
+      // prints id of the created user
+      fmt.Fprintf(w, string(text))
+      return
+    }
+
+    // if not -1, we rename
     if (err != nil) {
       log.Fatal(err.Error())
       return
     }
 
-    create_user(user_name)
+    new_user := create_user(user.Name)
 
+    text, err := json.Marshal(new_user)
+    if (err != nil) {
+      // rip
+      return
+    }
+    // prints id of the created user
+    fmt.Fprintf(w, string(text))
 }
 
 func handler_group_messages(w http.ResponseWriter, r *http.Request) {
@@ -217,7 +249,7 @@ func getURLParam(path string, prefix string) []string {
 
 func main() {
     var ssl_path = "/var/www/group_chat_project/web/private/ssl/"
-    var crt = ssl_path+"2_erf.io.crt"
+    var crt = ssl_path+"both_cert.crt"
     var key = ssl_path+"amber_nopass.key"
 
 
@@ -252,7 +284,7 @@ func main() {
     http.HandleFunc("/group/kick", handler_group_kick)
 
     // create new user
-    http.HandleFunc("/user/new", handler_user_new)
+    http.HandleFunc("/user/new", handler_user_new_or_rename)
 
 
     err := http.ListenAndServeTLS(":443", crt, key, nil)
