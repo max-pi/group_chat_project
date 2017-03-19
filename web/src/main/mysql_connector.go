@@ -28,7 +28,12 @@ type Message struct {
   UserId int
 }
 
-
+type Notification struct {
+  Id int;
+  UserId int;
+  Body string;
+  Served bool;
+}
 
 
 
@@ -186,6 +191,39 @@ func create_message(body string, group_id int, user_id int) {
     log.Fatal(err.Error())
   }
 
+}
+
+func get_notifications(user_id int) []Notification {
+  db := get_db();
+
+  // list of all the groups
+  var result []Notification;
+
+  rows, errs := db.Query("select * from notifications where user_id = ? and served = false", user_id)
+
+  if(errs != nil) {
+    // rip
+    return []Notification{}
+  }
+
+  for rows.Next() {
+
+    var id int;
+    var user_id int;
+    var body string;
+    var served bool;
+
+    err := rows.Scan(&id, &user_id, &body, &served)
+    if (err != nil) {
+      log.Printf(err.Error())
+    }
+
+    // TODO: set notifications to served
+
+    result = append(result, Notification{id, user_id, body, served})
+  }
+
+  return result;
 }
 
 

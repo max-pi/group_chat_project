@@ -238,7 +238,22 @@ func getURLParam(path string, prefix string) []string {
   return s
 }
 
+func handler_notifications(w http.ResponseWriter, r *http.Request) {
+    params := strings.Split(r.URL.Path,"/")
+    user_id := params[len(params)-1] // gets trailing part
+    user_id_int, err := strconv.Atoi(user_id)
 
+    all_notifications := get_notifications(user_id_int)
+
+    text, err := json.Marshal(all_notifications)
+
+    if (err != nil) {
+      // rip
+      return
+    }
+
+    fmt.Fprintf(w, string(text))
+}
 
 
 // startup
@@ -281,6 +296,9 @@ func main() {
 
     // create new user
     http.HandleFunc("/user/new", handler_user_new_or_rename)
+
+    // check notifications for user
+    http.HandleFunc("/notifications/", handler_notifications)
 
 
     err := http.ListenAndServeTLS(":443", crt, key, nil)
