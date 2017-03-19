@@ -50,7 +50,7 @@ func handler_group_one(w http.ResponseWriter, r *http.Request) {
 
     params := strings.Split(r.URL.Path,"/")
 
-    group_id := params[len(params)-1]
+    group_id := params[len(params)-1] // gets trailing part
     group_id_int, err := strconv.Atoi(group_id)
 
     group := get_group_with_id(group_id_int)
@@ -191,22 +191,13 @@ func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_messages(w http.ResponseWriter, r *http.Request) {
+    // GET request
 
-    decoder := json.NewDecoder(r.Body)
+    params := strings.Split(r.URL.Path,"/")
+    group_id := params[len(params)-1] // gets trailing part
+    group_id_int, err := strconv.Atoi(group_id)
 
-    datas := []struct {
-      GroupId int
-    }{}
-
-    err := decoder.Decode(&datas)
-
-    if(err != nil) {
-      fmt.Fprintf(w, string(err.Error()))
-    }
-
-    data := datas[0]
-
-    all_messages := get_messages(data.GroupId)
+    all_messages := get_messages(group_id_int)
 
     text, err := json.Marshal(all_messages)
 
@@ -274,7 +265,7 @@ func main() {
     http.HandleFunc("/group/delete", handler_group_delete)
 
     // get messages in a group
-    http.HandleFunc("/group/messages", handler_group_messages)
+    http.HandleFunc("/group/messages/", handler_group_messages)
 
     // create message in a group
     http.HandleFunc("/group/messages/send", handler_group_messages_send)
