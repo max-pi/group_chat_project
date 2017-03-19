@@ -30,9 +30,8 @@ POST
 group_id
 *deletes group*
 
-/group/messages
-POST
-group_id
+/group/messages/{group_id}
+GET
 *gets all the messages for a group*
 
 /group/messages/send
