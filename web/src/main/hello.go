@@ -16,12 +16,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_status(w http.ResponseWriter, r *http.Request) {
+    //TODO: check for notifications here?
+
+
     fmt.Fprintf(w, "looks like we are ok")
 }
 
 func handler_app_link(w http.ResponseWriter, r *http.Request) {
     // TODO: redirect to the app store link
     fmt.Fprintf(w, "app store link:")
+
 }
 
 func handler_group_all(w http.ResponseWriter, r *http.Request) {
@@ -187,21 +191,22 @@ func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_messages(w http.ResponseWriter, r *http.Request) {
-    if r.Method != "POST" {
-      // only allow POST requests
-      return
+
+    decoder := json.NewDecoder(r.Body)
+
+    datas := []struct {
+      GroupId int
+    }{}
+
+    err := decoder.Decode(&datas)
+
+    if(err != nil) {
+      fmt.Fprintf(w, string(err.Error()))
     }
 
-    r.ParseForm()
-    group_id := r.PostFormValue("group_id")
-    group_id_int, err := strconv.Atoi(group_id)
+    data := datas[0]
 
-    if (err != nil) {
-      log.Fatal(err.Error())
-      return
-    }
-
-    all_messages := get_messages(group_id_int)
+    all_messages := get_messages(data.GroupId)
 
     text, err := json.Marshal(all_messages)
 
