@@ -22,12 +22,12 @@ GET
 
 /group/new
 POST
-group_name
+GroupName
 *creates a new group*
 
 /group/delete
 POST
-group_id
+GroupId
 *deletes group*
 
 /group/messages/{group_id}
@@ -36,24 +36,24 @@ GET
 
 /group/messages/send
 POST
-body
-group_id
-user_id
+Body
+GroupId
+UserId
 *sends a message to a group*
 
 /group/join
 POST
-group_id
-user_id
+GroupId
+UserId
 *joins a user to a group*
 
 /group/kick
 POST
-group_id
-user_id
+GroupId
+UserId
 *kicks user from group*
 
 /user/new
 POST
-name
+Name
 *creates a new user*
