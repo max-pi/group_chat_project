@@ -21,6 +21,7 @@
             android:name=".MyGroupsActivity"
             android:label="@string/title_activity_my_groups"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".MessagingActivity"></activity>
     </application>
 
 </manifest>

@@ -27,10 +27,10 @@ public class GroupsAdapter extends ArrayAdapter<MessagingGroup> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.group_item, parent, false);
         }
         // Lookup view for data population
-        TextView name = (TextView) convertView.findViewById(R.id.text1);
+        TextView name = (TextView) convertView.findViewById(R.id.group_item_name);
         // Populate the data into the template view using the data object
-        name.setText(MessagingGroup.name);
-        name.setTag(MessagingGroup.id);
+        name.setText(group.name);
+        name.setTag(group.id);
         // Return the completed view to render on screen
         return convertView;
     }
