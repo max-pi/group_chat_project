@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class MessagingActivity extends MainActivity {
     GroupMessageAdapter messageAdapter;
     static Integer groupID;
-
+    ListView messagesView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +33,8 @@ public class MessagingActivity extends MainActivity {
         setContentView(R.layout.activity_messaging);
         String groupName = (String) getIntent().getStringExtra("NAME");
         groupID = (Integer) getIntent().getIntExtra("ID", -1);
-//        TODO make id an int
         messageAdapter = new GroupMessageAdapter(this, new ArrayList<GroupMessage>());
-        final ListView messagesView = (ListView) findViewById(R.id.messages_view);
+        messagesView = (ListView) findViewById(R.id.messages_view);
         messagesView.setAdapter(messageAdapter);
 
         // Capture the layout's TextView and set the string as its text
@@ -84,7 +83,6 @@ public class MessagingActivity extends MainActivity {
     }
 
     public void getMessages() {
-
         MakeRequest("https://erf.io/group/messages/" + groupID, Method.GET, null, new VolleyCallback() {
                     @Override
                     public void onSuccess(JSONArray response) {
@@ -92,14 +90,16 @@ public class MessagingActivity extends MainActivity {
                             GroupMessage message = new GroupMessage();
                             try {
                                 message.id = response.getJSONObject(i).getInt("Id");
-                                message.name = response.getJSONObject(i).getString("Name"); // todo change when name returned
+                                message.name = response.getJSONObject(i).getString("Name");
                                 message.message = response.getJSONObject(i).getString("Body");
+                                message.user_id = response.getJSONObject(i).getInt("UserId");
                             } catch (JSONException e) {
                                 System.out.println(e);
                             }
 
                             messageAdapter.add(message);
                         }
+                        messagesView.setSelection(messageAdapter.getCount() - 1);
                     }
                 }
         );

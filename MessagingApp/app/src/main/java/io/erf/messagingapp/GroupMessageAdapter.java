@@ -2,10 +2,12 @@ package io.erf.messagingapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.security.acl.Group;
@@ -42,8 +44,9 @@ public class GroupMessageAdapter extends BaseAdapter {
     public long getItemId(int position) {
         return position;
     }
+
     public void add(GroupMessage message){
-        //check here to make sure message isnt already in list
+        //check here to make sure message isn't already in list
         for (int i = 0; i<messageList.size(); i++){
             if (messageList.get(i).id == message.id)
                 return;
@@ -70,8 +73,17 @@ public class GroupMessageAdapter extends BaseAdapter {
 
         GroupMessage message = (GroupMessage) getItem(position);
         holder.bodyView.setText(message.message);
-        holder.senderView.setText(message.name);
 
+        if (message.user_id == MainActivity.USER_ID) {
+            holder.senderView.setGravity(Gravity.END);
+            holder.bodyView.setGravity(Gravity.END);
+            holder.senderView.setText("Me");
+        }
+        else {
+            holder.senderView.setText(message.name);
+            holder.senderView.setGravity(Gravity.START);
+            holder.bodyView.setGravity(Gravity.START);
+        }
         return convertView;
 
     }

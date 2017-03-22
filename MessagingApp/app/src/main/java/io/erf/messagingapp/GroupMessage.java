@@ -8,4 +8,5 @@ public class GroupMessage {
     public int id;
     public String message;
     public String name;
+    public int user_id;
 }
