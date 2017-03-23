@@ -18,9 +18,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MyGroupsActivity"
-            android:label="@string/title_activity_my_groups"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:name=".MyGroupsActivity" />
         <activity
             android:name=".MessagingActivity"
             android:windowSoftInputMode="stateHidden">

@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 postData.put(jo);
                 makeName(postData);
-                getGroups();
+                Intent intent = new Intent(MainActivity.this , MyGroupsActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -100,28 +101,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void getGroups() {
-        MakeRequest("https://erf.io/group/all", Method.GET, null, new VolleyCallback() {
-            @Override
-            public void onSuccess(JSONArray response) {
-                ArrayList<MessagingGroup> GroupList = new ArrayList<MessagingGroup>();
-                for (int i = 0; i < response.length(); i++) {
-                    MessagingGroup grp = new MessagingGroup();
-                    try {
-                        grp.id = response.getJSONObject(i).getInt("Id");
-                        grp.name = response.getJSONObject(i).getString("Name");
-                    } catch (JSONException e) {
-                        System.out.println(e);
-                    }
-                    GroupList.add(grp);
-                }
-            Intent intent = new Intent(MainActivity.this, MyGroupsActivity.class);
-            intent.putExtra("GROUPS", GroupList);
-            startActivity(intent);
-            }
-
-        });
-    }
+//    private void getGroups() {
+//        MakeRequest("https://erf.io/group/all", Method.GET, null, new VolleyCallback() {
+//            @Override
+//            public void onSuccess(JSONArray response) {
+//                ArrayList<MessagingGroup> GroupList = new ArrayList<MessagingGroup>();
+//                for (int i = 0; i < response.length(); i++) {
+//                    MessagingGroup grp = new MessagingGroup();
+//                    try {
+//                        grp.id = response.getJSONObject(i).getInt("Id");
+//                        grp.name = response.getJSONObject(i).getString("Name");
+//                    } catch (JSONException e) {
+//                        System.out.println(e);
+//                    }
+//                    GroupList.add(grp);
+//                }
+//                Intent intent = new Intent(MainActivity.this, MyGroupsActivity.class);
+//                intent.putExtra("GROUPS", GroupList);
+//                startActivity(intent);
+//            }
+//
+//        });
+//    }
 
 
     public void MakeRequest(String url, int method, JSONArray postData, final VolleyCallback callback){
