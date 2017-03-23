@@ -12,7 +12,7 @@ var err error
 
 // db structures
 type Group struct {
-  Id int
+  Id int64
   Name string
 }
 
@@ -26,6 +26,7 @@ type Message struct {
   Body string
   GroupId int
   UserId int
+  Name string
 }
 
 type Notification struct {
@@ -60,7 +61,7 @@ func get_group_all() []Group {
 
   for rows.Next() {
 
-    var id int;
+    var id int64;
     var name string;
     var icon *string;
 
@@ -81,7 +82,7 @@ func get_group_with_id(group_id int) Group {
 
   db := get_db();
 
-  var id int;
+  var id int64;
   var name string;
   var icon *string;
 
@@ -90,14 +91,17 @@ func get_group_with_id(group_id int) Group {
   return Group{id, name};
 }
 
-func create_group(name string) {
+func create_group(name string) Group {
   db := get_db();
 
-  _, err := db.Exec("insert into message_group (name) values (?)", name)
+  result, err := db.Exec("insert into message_group (name) values (?)", name)
   if err != nil {
   	log.Fatal(err.Error())
   }
 
+  group_id, _ := result.LastInsertId();
+
+  return Group{group_id, name};
 }
 
 func delete_group(group_id int) {
@@ -157,9 +161,10 @@ func get_messages(group_id int) []Message {
   db := get_db();
 
   // list of all the groups
-  var result []Message;
+  var result = []Message{};
 
-  rows, errs := db.Query("select * from message where message_group_id = ?", group_id)
+  //rows, errs := db.Query("select * from message where message_group_id = ?", group_id)
+  rows, errs := db.Query("select m.id, m.body, m.message_group_id, m.user_id, user.name from message as m left join user ON (m.user_id=user.id ) where message_group_id =  ?", group_id)
 
   if(errs != nil) {
     // rip
@@ -172,25 +177,28 @@ func get_messages(group_id int) []Message {
     var body string;
     var group_id int;
     var user_id int;
+    var name string;
 
-    err := rows.Scan(&id, &body, &group_id, &user_id)
+    err := rows.Scan(&id, &body, &group_id, &user_id, &name)
     if (err != nil) {
       log.Printf(err.Error())
     }
 
-    result = append(result, Message{id, body, group_id, user_id})
+    result = append(result, Message{id, body, group_id, user_id, name})
   }
 
   return result;
 }
 
-func create_message(body string, group_id int, user_id int) {
+func create_message(body string, group_id int, user_id int) int64 {
 
-  _, err := db.Exec("insert into message (body, message_group_id, user_id) values (?,?,?)", body, group_id, user_id)
+  result, err := db.Exec("insert into message (body, message_group_id, user_id) values (?,?,?)", body, group_id, user_id)
   if err != nil {
     log.Fatal(err.Error())
   }
+  message_id, _ := result.LastInsertId();
 
+  return message_id;
 }
 
 func get_notifications(user_id int) []Notification {

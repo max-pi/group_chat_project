@@ -9,7 +9,10 @@ import (
     "strings"
 )
 
+var SUCCESS_MESSAGE = "[{\"Success\": true}]";
+
 // handlers for the api calls
+// TODO: remove all ParseForm stuff
 
 func handler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Hi there, I love %s! \n", r.URL.Path[1:])
@@ -44,7 +47,7 @@ func handler_group_all(w http.ResponseWriter, r *http.Request) {
 
 func handler_group_one(w http.ResponseWriter, r *http.Request) {
     if r.Method != "GET" {
-      // only allow POST requests
+      // only allow GET requests
       return
     }
 
@@ -63,7 +66,7 @@ func handler_group_one(w http.ResponseWriter, r *http.Request) {
     }
 
     // show the group info
-    fmt.Fprintf(w, string(text))
+    fmt.Fprintf(w, "[" + string(text) + "]")
 }
 
 func handler_group_new(w http.ResponseWriter, r *http.Request) {
@@ -72,10 +75,29 @@ func handler_group_new(w http.ResponseWriter, r *http.Request) {
       return
     }
 
-    r.ParseForm()
-    group_name := r.PostFormValue("group_name")
+    decoder := json.NewDecoder(r.Body)
 
-    create_group(group_name)
+    datas := []struct {
+      GroupName string
+    }{}
+
+    err := decoder.Decode(&datas)
+
+    if(err != nil) {
+      fmt.Fprintf(w, string(err.Error()))
+    }
+
+    data := datas[0]
+
+    group := create_group(data.GroupName)
+
+    text, err := json.Marshal([]Group{group})
+    if (err != nil) {
+      // rip
+      return
+    }
+    // prints group obj
+    fmt.Fprintf(w, string(text))
 }
 
 func handler_group_delete(w http.ResponseWriter, r *http.Request) {
@@ -215,21 +237,26 @@ func handler_group_messages_send(w http.ResponseWriter, r *http.Request) {
       return
     }
 
-    r.ParseForm()
-    body := r.PostFormValue("body")
+    decoder := json.NewDecoder(r.Body)
+    datas := []struct {
+      Body string
+      GroupId int
+      UserId int
+    }{}
 
-    group_id := r.PostFormValue("group_id")
-    group_id_int, err := strconv.Atoi(group_id)
+    err := decoder.Decode(&datas)
 
-    user_id := r.PostFormValue("user_id")
-    user_id_int, err := strconv.Atoi(user_id)
-
-    if (err != nil) {
-      log.Fatal(err.Error())
-      return
+    if(err != nil) {
+      fmt.Fprintf(w, string(err.Error()))
     }
 
-    create_message(body, group_id_int, user_id_int)
+    data := datas[0]
+
+    message_id := create_message(data.Body, data.GroupId, data.UserId)
+
+    if (message_id > 0) {
+      fmt.Fprintf(w, string(SUCCESS_MESSAGE))
+    }
 }
 
 func getURLParam(path string, prefix string) []string {
