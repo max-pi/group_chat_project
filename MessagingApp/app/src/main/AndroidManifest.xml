@@ -17,12 +17,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".MyGroupsActivity" />
+        <activity android:name=".MyGroupsActivity" />
         <activity
             android:name=".MessagingActivity"
-            android:windowSoftInputMode="stateHidden">
-        </activity>
+            android:windowSoftInputMode="stateHidden"></activity>
+
+        <service
+            android:name=".ConnectionService"
+            android:exported="false"></service>
     </application>
 
 </manifest>

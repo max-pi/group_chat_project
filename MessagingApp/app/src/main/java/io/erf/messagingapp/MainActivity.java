@@ -2,9 +2,12 @@ package io.erf.messagingapp;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -31,13 +34,37 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     static Integer USER_ID;
+    SharedPreferences sharedPref;
+    BroadcastReceiver receiver;
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+                new IntentFilter("connection")
+        );
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        Intent backintent = new Intent(MainActivity.this , ConnectionService.class);
+        startService(backintent);
+        sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
         final Button button = (Button) findViewById(R.id.createButton);
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Boolean s = intent.getBooleanExtra("CONNECTED", false);
+                if (s) {
+                    setTitle("Connected");
+                }
+                else {
+                    setTitle("Not Connected");
+                }
+            }
+        };
+
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 EditText EditName = (EditText)findViewById(R.id.name);
@@ -48,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 int userID;
                 try {
 
-                    SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+
                     userID = sharedPref.getInt("USER_ID", -1);
                     jo.put("Name", name);
                     jo.put("UserId", userID);
@@ -83,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
         MakeRequest("https://erf.io/user/new", Method.POST, postData, new VolleyCallback() {
             @Override
             public void onSuccess(JSONArray response) {
-                // needs api change
                 User usr = new User();
                 try {
                     usr.id = response.getJSONObject(0).getInt("UserId");
@@ -93,6 +119,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 USER_ID = usr.id;
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt("USER_ID", usr.id);
+                editor.apply();
 
             }
 
@@ -100,29 +129,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-//    private void getGroups() {
-//        MakeRequest("https://erf.io/group/all", Method.GET, null, new VolleyCallback() {
-//            @Override
-//            public void onSuccess(JSONArray response) {
-//                ArrayList<MessagingGroup> GroupList = new ArrayList<MessagingGroup>();
-//                for (int i = 0; i < response.length(); i++) {
-//                    MessagingGroup grp = new MessagingGroup();
-//                    try {
-//                        grp.id = response.getJSONObject(i).getInt("Id");
-//                        grp.name = response.getJSONObject(i).getString("Name");
-//                    } catch (JSONException e) {
-//                        System.out.println(e);
-//                    }
-//                    GroupList.add(grp);
-//                }
-//                Intent intent = new Intent(MainActivity.this, MyGroupsActivity.class);
-//                intent.putExtra("GROUPS", GroupList);
-//                startActivity(intent);
-//            }
-//
-//        });
-//    }
 
 
     public void MakeRequest(String url, int method, JSONArray postData, final VolleyCallback callback){
