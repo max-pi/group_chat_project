@@ -57,3 +57,8 @@ UserId
 POST
 Name
 *creates a new user*
+
+/user/groups/{user_id}
+GET
+*returns groups a user is in*
+
