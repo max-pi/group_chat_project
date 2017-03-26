@@ -56,6 +56,7 @@ func handler_group_one(w http.ResponseWriter, r *http.Request) {
     group_id_int, err := strconv.Atoi(group_id)
 
     group := get_group_with_id(group_id_int)
+    //members := get_group_members(group_id_int)
 
     text, err := json.Marshal(group)
 
@@ -290,6 +291,23 @@ func handler_notifications(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, string(text))
 }
 
+func handler_groups_for_user(w http.ResponseWriter, r *http.Request) {
+    params := strings.Split(r.URL.Path,"/")
+    user_id := params[len(params)-1] // gets trailing part
+    user_id_int, err := strconv.Atoi(user_id)
+
+    groups := get_groups_for_user(user_id_int)
+
+    text, err := json.Marshal(groups)
+
+    if (err != nil) {
+      // rip
+      return
+    }
+
+    fmt.Fprintf(w, string(text))
+}
+
 
 // startup
 
@@ -334,6 +352,9 @@ func main() {
 
     // check notifications for user
     http.HandleFunc("/notifications/", handler_notifications)
+
+    // check groups for user
+    http.HandleFunc("/user/groups/", handler_groups_for_user)
 
 
     err := http.ListenAndServeTLS(":443", crt, key, nil)

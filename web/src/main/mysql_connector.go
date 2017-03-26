@@ -14,6 +14,7 @@ var err error
 type Group struct {
   Id int64
   Name string
+  Users []User `json:"Users,omitempty"`
 }
 
 type User struct {
@@ -71,7 +72,7 @@ func get_group_all() []Group {
       log.Printf(err.Error())
     }
 
-    result = append(result, Group{id, name})
+    result = append(result, Group{id, name, nil})
   }
 
 
@@ -80,7 +81,7 @@ func get_group_all() []Group {
 
 
 func get_group_with_id(group_id int) Group {
-  log.Println("geting group with id %", group_id)
+  log.Println("geting group with id %d", group_id)
 
   db := get_db();
 
@@ -90,7 +91,38 @@ func get_group_with_id(group_id int) Group {
 
   db.QueryRow("select * from message_group where id = ?", group_id).Scan(&id, &name, &icon)
 
-  return Group{id, name};
+  return Group{id, name, get_group_members(group_id)};
+}
+
+func get_group_members(group_id int) []User {
+  log.Println("geting members of group %d", group_id)
+
+  db := get_db();
+
+  // list of all the members
+  var result []User;
+
+  rows, errs := db.Query("select distinct u.id, u.name from user as u left join user_group on (u.id = user_group.user_id) where user_group.message_group_id = ?", group_id)
+
+  if(errs != nil) {
+    // rip
+    return []User{}
+  }
+
+  for rows.Next() {
+
+    var id int64;
+    var name string;
+
+    err := rows.Scan(&id, &name)
+    if (err != nil) {
+      log.Printf(err.Error())
+    }
+
+    result = append(result, User{id, name})
+  }
+
+  return result;
 }
 
 func create_group(name string) Group {
@@ -103,7 +135,7 @@ func create_group(name string) Group {
 
   group_id, _ := result.LastInsertId();
 
-  return Group{group_id, name};
+  return Group{group_id, name, nil};
 }
 
 func delete_group(group_id int) {
@@ -169,7 +201,6 @@ func get_messages(group_id int) []Message {
   // list of all the groups
   var result = []Message{};
 
-  //rows, errs := db.Query("select * from message where message_group_id = ?", group_id)
   rows, errs := db.Query("select m.id, m.body, m.message_group_id, m.user_id, user.name from message as m left join user ON (m.user_id=user.id ) where message_group_id =  ?", group_id)
 
   if(errs != nil) {
@@ -210,7 +241,7 @@ func create_message(body string, group_id int, user_id int) int64 {
 func get_notifications(user_id int) []Notification {
   db := get_db();
 
-  // list of all the groups
+  // list of all the notifications
   var result []Notification;
 
   rows, errs := db.Query("select * from notifications where user_id = ? and served = false", user_id)
@@ -240,6 +271,34 @@ func get_notifications(user_id int) []Notification {
   return result;
 }
 
+func get_groups_for_user(user_id int) []Group {
+  db := get_db();
+
+  // list of all the grou[s]
+  var result []Group;
+
+  rows, errs := db.Query("select g.id, g.name from message_group as g left join user_group on (g.id = user_group.message_group_id) where user_group.user_id = ?", user_id)
+
+  if(errs != nil) {
+    // rip
+    return []Group{}
+  }
+
+  for rows.Next() {
+
+    var id int64;
+    var name string;
+
+    err := rows.Scan(&id, &name)
+    if (err != nil) {
+      log.Printf(err.Error())
+    }
+
+    result = append(result, Group{id, name, nil})
+  }
+
+  return result;
+}
 
 
 // setup methods
