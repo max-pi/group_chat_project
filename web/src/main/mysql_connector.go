@@ -47,6 +47,7 @@ func homePage(res http.ResponseWriter, req *http.Request) {
 
 // api db methods
 func get_group_all() []Group {
+  log.Println("getting all groups")
 
   db := get_db();
 
@@ -79,6 +80,7 @@ func get_group_all() []Group {
 
 
 func get_group_with_id(group_id int) Group {
+  log.Println("geting group with id %", group_id)
 
   db := get_db();
 
@@ -105,6 +107,8 @@ func create_group(name string) Group {
 }
 
 func delete_group(group_id int) {
+  log.Println("deleting group")
+
   db := get_db()
 
   _, err := db.Exec("delete from message_group where id = ?", group_id)
@@ -115,6 +119,8 @@ func delete_group(group_id int) {
 }
 
 func create_user(name string) User {
+  log.Println("creating user: ", name)
+
   db := get_db();
 
   result, err := db.Exec("insert into user (name) values (?)", name)

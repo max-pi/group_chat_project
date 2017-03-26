@@ -21,8 +21,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func handler_status(w http.ResponseWriter, r *http.Request) {
     //TODO: check for notifications here?
 
-
-    fmt.Fprintf(w, "looks like we are ok")
+    fmt.Fprintf(w, SUCCESS_MESSAGE)
 }
 
 func handler_app_link(w http.ResponseWriter, r *http.Request) {
@@ -124,19 +123,23 @@ func handler_group_join(w http.ResponseWriter, r *http.Request) {
       return
     }
 
-    r.ParseForm()
-    group_id := r.PostFormValue("group_id")
-    group_id_int, err := strconv.Atoi(group_id)
+    decoder := json.NewDecoder(r.Body)
 
-    user_id := r.PostFormValue("user_id")
-    user_id_int, err := strconv.Atoi(user_id)
+    datas := []struct {
+      GroupId int
+      UserId int
+    }{}
 
-    if (err != nil) {
-      log.Fatal(err.Error())
-      return
+    err := decoder.Decode(&datas)
+
+    if(err != nil) {
+      fmt.Fprintf(w, string(err.Error()))
     }
 
-    join_group(group_id_int, user_id_int)
+    data := datas[0]
+
+    join_group(data.GroupId, data.UserId)
+    fmt.Fprintf(w, "[{\"GroupId\": %d }]", data.GroupId)
 }
 
 func handler_group_kick(w http.ResponseWriter, r *http.Request) {
@@ -161,6 +164,7 @@ func handler_group_kick(w http.ResponseWriter, r *http.Request) {
     data := datas[0]
 
     kick_user(data.GroupId, data.UserId)
+    fmt.Fprintf(w, "[{\"GroupId\": %d }]", data.GroupId)
 }
 
 
@@ -180,6 +184,8 @@ func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
 
     user := users[0]
 
+    log.Println(user.UserId)
+
     if(user.UserId > -1) {
       // rename a user
 
@@ -191,6 +197,7 @@ func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
         return
       }
       // prints id of the created user
+      log.Println(string(text))
       fmt.Fprintf(w, string(text))
       return
     }
@@ -203,12 +210,13 @@ func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
 
     new_user := create_user(user.Name)
 
-    text, err := json.Marshal(new_user)
+    text, err := json.Marshal([]User{new_user})
     if (err != nil) {
       // rip
       return
     }
     // prints id of the created user
+    log.Println(string(text))
     fmt.Fprintf(w, string(text))
 }
 
