@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     static Integer USER_ID;
+    static ArrayList<Integer> GROUPS;
     SharedPreferences sharedPref;
     BroadcastReceiver receiver;
 
@@ -50,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Intent backintent = new Intent(MainActivity.this , ConnectionService.class);
         startService(backintent);
-        sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+        GROUPS = new ArrayList<Integer>();
+        sharedPref = getApplicationContext().getSharedPreferences("PREFS", Context.MODE_PRIVATE);
         final Button button = (Button) findViewById(R.id.createButton);
         receiver = new BroadcastReceiver() {
             @Override
@@ -121,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                 USER_ID = usr.id;
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putInt("USER_ID", usr.id);
-                editor.apply();
+                editor.commit();
 
             }
 

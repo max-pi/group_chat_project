@@ -6,10 +6,39 @@
     android:layout_height="match_parent"
 
     tools:context="io.erf.messagingapp.MessagingActivity">
+    <RelativeLayout
+        android:id="@+id/topBarMessaging"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
     <TextView
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:id="@+id/messaging_group_name"
+        android:textSize="20sp"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/showGroupButton" />
+    <Button
+        android:id="@+id/showGroupButton"
         android:layout_height="wrap_content"
-        android:id="@+id/messaging_group_name"/>
+        android:layout_width="wrap_content"
+        android:text="Show Group"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/leaveGroupButton" />
+    <Button
+        android:id="@+id/joinGroupButton"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Join Group"/>
+    <Button
+        android:id="@+id/leaveGroupButton"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Leave Group"
+        android:visibility="invisible"/>
+
+        </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/InnerLayout"
@@ -37,7 +66,7 @@
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:id="@+id/messages_view"
-        android:layout_below="@+id/messaging_group_name"
+        android:layout_below="@+id/topBarMessaging"
         android:layout_alignParentStart="true"
         android:layout_above="@+id/InnerLayout" />
 </RelativeLayout>
