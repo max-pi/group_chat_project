@@ -2,6 +2,9 @@ package io.erf.messagingapp;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +13,7 @@ import android.content.SharedPreferences;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
                 new IntentFilter("connection")
         );
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+                new IntentFilter("notification")
+        );
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,12 +65,38 @@ public class MainActivity extends AppCompatActivity {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Boolean s = intent.getBooleanExtra("CONNECTED", false);
-                if (s) {
-                    setTitle("Connected");
+                if (intent.getAction().equals("connection")) {
+                    Boolean s = intent.getBooleanExtra("CONNECTED", false);
+                    if (s) {
+                        setTitle("Connected");
+                    } else {
+                        setTitle("Not Connected");
+                    }
                 }
                 else {
-                    setTitle("Not Connected");
+                    ArrayList<Notification> NotificationList = (ArrayList<Notification>) intent.getSerializableExtra("notifications");
+                    for (int i = 0; i< NotificationList.size(); i++){
+                        int GroupId = NotificationList.get(i).GroupId;
+
+                        Intent resultIntent = new Intent(MainActivity.this, MessagingActivity.class);
+                        intent.putExtra("NAME", NotificationList.get(i).GroupName);
+                        intent.putExtra("ID", GroupId);
+                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(MainActivity.this);
+                        stackBuilder.addParentStack(MessagingActivity.class);
+                        stackBuilder.addNextIntent(resultIntent);
+                        PendingIntent resultPendingIntent =
+                                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                        NotificationCompat.Builder mBuilder =
+                                new NotificationCompat.Builder(MainActivity.this)
+                                        .setSmallIcon(R.drawable.new_message_icon)
+                                        .setContentTitle(NotificationList.get(i).SenderName + " (Group " + GroupId + ")")
+                                        .setContentText(NotificationList.get(i).message)
+                                        .setContentIntent(resultPendingIntent);
+                        NotificationManager mNotificationManager =
+                                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        mNotificationManager.notify(GroupId, mBuilder.build());
+                    }
+
                 }
             }
         };
@@ -77,11 +110,9 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject jo = new JSONObject();
                 int userID;
                 try {
-
-
                     userID = sharedPref.getInt("USER_ID", -1);
                     jo.put("Name", name);
-                    jo.put("UserId", userID);
+                    jo.put("UserId", 1);
                 }
                 catch (JSONException e) {
                     System.out.println(e);

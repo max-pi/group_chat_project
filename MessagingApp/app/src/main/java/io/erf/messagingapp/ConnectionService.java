@@ -14,8 +14,12 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.ArrayList;
+
 public class ConnectionService extends IntentService {
     LocalBroadcastManager broadcaster;
+    SharedPreferences sharedPref;
+    int userID;
     static Thread t;
 
     public ConnectionService() {
@@ -31,6 +35,7 @@ public class ConnectionService extends IntentService {
                 while (true) {
                     try {
                         getStatus();
+                        getNotifications();
                         Thread.sleep(5000);
                     }
                     catch (InterruptedException e) {
@@ -52,6 +57,36 @@ public class ConnectionService extends IntentService {
 
     }
 
+    private void getNotifications() {
+        sharedPref = getApplicationContext().getSharedPreferences("PREFS", Context.MODE_PRIVATE);
+        userID = sharedPref.getInt("USER_ID", -1);
+        MakeRequest("https://erf.io/notifications/" + userID, MainActivity.Method.GET, null, new ConnectionService.VolleyCallback() {
+            @Override
+            public void onSuccess(JSONArray response) {
+                Intent intent = new Intent("notification");
+                Notification notification;
+                ArrayList<Notification> NotificationList= new ArrayList<Notification>();
+                try {
+                    for (int i = 0; i < response.length(); i++) {
+                        notification = new Notification();
+                        notification.GroupId = response.getJSONObject(i).getInt("GroupId");
+                        notification.SenderName = response.getJSONObject(i).getString("SenderName");
+                        notification.GroupName = response.getJSONObject(i).getString("GroupName");
+                        notification.message = response.getJSONObject(i).getString("Body");
+                        NotificationList.add(notification);
+                    }
+                } catch (JSONException e){
+                    System.out.println("oops");
+                }
+                intent.putExtra("notifications", NotificationList);
+                broadcaster.sendBroadcast(intent);
+            }
+            public void onError(VolleyError error){
+                System.out.println("o no");
+            }
+
+        });
+    }
 
 
     private void getStatus() {

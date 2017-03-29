@@ -20,11 +20,11 @@
         <activity android:name=".MyGroupsActivity" />
         <activity
             android:name=".MessagingActivity"
-            android:windowSoftInputMode="stateHidden"></activity>
+            android:windowSoftInputMode="stateHidden" />
 
         <service
             android:name=".ConnectionService"
-            android:exported="false"></service>
+            android:exported="false" />
     </application>
 
 </manifest>
