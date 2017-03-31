@@ -33,12 +33,13 @@ type Message struct {
 type Notification struct {
   Id int;
   UserId int;
+  SenderId int;
+  SenderName string;
+  GroupId int;
+  GroupName string;
   Body string;
   Served bool;
 }
-
-
-
 
 
 func homePage(res http.ResponseWriter, req *http.Request) {
@@ -227,13 +228,33 @@ func get_messages(group_id int) []Message {
   return result;
 }
 
-func create_message(body string, group_id int, user_id int) int64 {
+func create_message(body string, group_id int, user_id int64) int64 {
+  db := get_db();
 
   result, err := db.Exec("insert into message (body, message_group_id, user_id) values (?,?,?)", body, group_id, user_id)
+  message_id, _ := result.LastInsertId();
+
+  members := get_group_members(group_id)
+
+  var name string;
+  db.QueryRow("select name from user where id = ?", user_id).Scan(&name);
+  log.Println("sent by: ", name)
+  group := get_group_with_id(group_id)
+
+  for _,member := range members {
+    if (member.UserId == user_id) {
+      continue // dont give notification to the sender
+    }
+    log.Println("notifying: ", member.Name)
+    _, err := db.Exec("insert into notifications (user_id, sender_id, sender_name,group_id, group_name, body, served) values (?,?,?,?,?,?,?)", member.UserId, user_id, name,group_id,group.Name, body, false)
+    if(err != nil) {
+      log.Println(err.Error());
+    }
+  }
+
   if err != nil {
     log.Fatal(err.Error())
   }
-  message_id, _ := result.LastInsertId();
 
   return message_id;
 }
@@ -242,7 +263,7 @@ func get_notifications(user_id int) []Notification {
   db := get_db();
 
   // list of all the notifications
-  var result []Notification;
+  var result []Notification ;
 
   rows, errs := db.Query("select * from notifications where user_id = ? and served = false", user_id)
 
@@ -255,19 +276,25 @@ func get_notifications(user_id int) []Notification {
 
     var id int;
     var user_id int;
+    var sender_id int;
+    var sender_name string;
+    var group_id int;
+    var group_name string;
     var body string;
     var served bool;
 
-    err := rows.Scan(&id, &user_id, &body, &served)
+    err := rows.Scan(&id, &user_id, &sender_id, &sender_name, &group_id, &group_name, &body, &served)
     if (err != nil) {
       log.Printf(err.Error())
     }
 
-    // TODO: set notifications to served
-
-    result = append(result, Notification{id, user_id, body, served})
+    result = append(result, Notification{id, user_id, sender_id, sender_name, group_id, group_name, body, served})
   }
 
+  db.Exec("update notifications set served = true where user_id = ?", user_id)
+  if result == nil {
+    return []Notification{}
+  }
   return result;
 }
 

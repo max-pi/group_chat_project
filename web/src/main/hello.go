@@ -250,7 +250,7 @@ func handler_group_messages_send(w http.ResponseWriter, r *http.Request) {
     datas := []struct {
       Body string
       GroupId int
-      UserId int
+      UserId int64
     }{}
 
     err := decoder.Decode(&datas)
