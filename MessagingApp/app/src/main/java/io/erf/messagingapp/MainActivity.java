@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     static ArrayList<Integer> GROUPS;
     SharedPreferences sharedPref;
     BroadcastReceiver receiver;
+    public static Context context;
+    static boolean disableReceiver = false;
 
     @Override
     protected void onStart() {
@@ -56,15 +58,49 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MainActivity.context = getApplicationContext();
         setContentView(R.layout.activity_main);
         Intent backintent = new Intent(MainActivity.this , ConnectionService.class);
         startService(backintent);
         GROUPS = new ArrayList<Integer>();
         sharedPref = getApplicationContext().getSharedPreferences("PREFS", Context.MODE_PRIVATE);
         final Button button = (Button) findViewById(R.id.createButton);
-        receiver = new BroadcastReceiver() {
+        EditText nameField = (EditText) findViewById(R.id.name);
+        nameField.setText(sharedPref.getString("NAME", ""));
+        receiver = createReceiver();
+
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                EditText EditName = (EditText)findViewById(R.id.name);
+                String name = EditName.getText().toString();
+
+                JSONArray postData = new JSONArray();
+                JSONObject jo = new JSONObject();
+                int userID;
+                try {
+                    userID = sharedPref.getInt("USER_ID", -1);
+                    jo.put("Name", name);
+                    jo.put("UserId", userID);
+                }
+                catch (JSONException e) {
+                    System.out.println(e);
+                }
+                postData.put(jo);
+                makeName(postData);
+                Intent intent = new Intent(MainActivity.this , MyGroupsActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    public BroadcastReceiver createReceiver(){
+        return new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                if (disableReceiver){
+                    return;
+                }
+
                 if (intent.getAction().equals("connection")) {
                     Boolean s = intent.getBooleanExtra("CONNECTED", false);
                     if (s) {
@@ -76,11 +112,11 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     ArrayList<Notification> NotificationList = (ArrayList<Notification>) intent.getSerializableExtra("notifications");
                     for (int i = 0; i< NotificationList.size(); i++){
-                        int GroupId = NotificationList.get(i).GroupId;
 
+                        int GroupId = NotificationList.get(i).GroupId;
                         Intent resultIntent = new Intent(MainActivity.this, MessagingActivity.class);
-                        intent.putExtra("NAME", NotificationList.get(i).GroupName);
-                        intent.putExtra("ID", GroupId);
+                        resultIntent.putExtra("NAME", NotificationList.get(i).GroupName);
+                        resultIntent.putExtra("ID", GroupId);
                         TaskStackBuilder stackBuilder = TaskStackBuilder.create(MainActivity.this);
                         stackBuilder.addParentStack(MessagingActivity.class);
                         stackBuilder.addNextIntent(resultIntent);
@@ -100,29 +136,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                EditText EditName = (EditText)findViewById(R.id.name);
-                String name = EditName.getText().toString();
-
-                JSONArray postData = new JSONArray();
-                JSONObject jo = new JSONObject();
-                int userID;
-                try {
-                    userID = sharedPref.getInt("USER_ID", -1);
-                    jo.put("Name", name);
-                    jo.put("UserId", 1);
-                }
-                catch (JSONException e) {
-                    System.out.println(e);
-                }
-                postData.put(jo);
-                makeName(postData);
-                Intent intent = new Intent(MainActivity.this , MyGroupsActivity.class);
-                startActivity(intent);
-            }
-        });
     }
 
     public interface Method {
@@ -139,7 +152,9 @@ public class MainActivity extends AppCompatActivity {
 
     public interface VolleyCallback{
         void onSuccess(JSONArray result);
+        void onError(VolleyError error);
     }
+
     private void makeName(JSONArray postData){
         MakeRequest("https://erf.io/user/new", Method.POST, postData, new VolleyCallback() {
             @Override
@@ -155,8 +170,13 @@ public class MainActivity extends AppCompatActivity {
                 USER_ID = usr.id;
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putInt("USER_ID", usr.id);
+                editor.putString("NAME", usr.name);
                 editor.commit();
 
+            }
+            @Override
+            public void onError(VolleyError error){
+                System.out.println();
             }
 
 
@@ -165,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void MakeRequest(String url, int method, JSONArray postData, final VolleyCallback callback){
+    public static void MakeRequest(String url, int method, JSONArray postData, final VolleyCallback callback){
         System.out.println("Clicked!");
 
         JsonArrayRequest jsArrRequest = new JsonArrayRequest
@@ -185,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
-        Volley.newRequestQueue(this).add(jsArrRequest);
+        Volley.newRequestQueue(MainActivity.context).add(jsArrRequest);
     }
 
 }

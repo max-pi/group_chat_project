@@ -1,10 +1,13 @@
 package io.erf.messagingapp;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -18,13 +21,17 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.android.volley.VolleyError;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MyGroupsActivity extends MainActivity {
+import static io.erf.messagingapp.MainActivity.MakeRequest;
+
+public class MyGroupsActivity extends AppCompatActivity{
 
     ListView listView ;
     Button newGroupButton;
@@ -32,13 +39,13 @@ public class MyGroupsActivity extends MainActivity {
     EditText createGroupName;
     Button createGroupButton;
     GroupsAdapter adapter;
+    BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_groups);
         getGroups();
-
         newGroupButton = (Button) findViewById(R.id.NewGroupButton);
         createGroup = (RelativeLayout) findViewById(R.id.CreateGroup);
         createGroupName = (EditText) findViewById(R.id.createGroupName);
@@ -78,7 +85,7 @@ public class MyGroupsActivity extends MainActivity {
     }
 
     private void createNewGroup(JSONArray postData){
-        MakeRequest("https://erf.io/group/new", Method.POST, postData, new VolleyCallback() {
+        MakeRequest("https://erf.io/group/new", MainActivity.Method.POST, postData, new MainActivity.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray response) {
                 MessagingGroup grp = new MessagingGroup();
@@ -92,12 +99,16 @@ public class MyGroupsActivity extends MainActivity {
                 adapter.notifyDataSetChanged();
 
             }
+            @Override
+            public void onError(VolleyError error){
+                System.out.println();
+            }
 
         });
     }
     /// add refresh groups with adapter.add (newItem) and notifyDataSetChanged
     private void getGroups() {
-        MakeRequest("https://erf.io/group/all", Method.GET, null, new VolleyCallback() {
+        MakeRequest("https://erf.io/group/all", MainActivity.Method.GET, null, new MainActivity.VolleyCallback() {
             @Override
             public void onSuccess(JSONArray response) {
                 ArrayList<MessagingGroup> GroupList = new ArrayList<MessagingGroup>();
@@ -134,6 +145,10 @@ public class MyGroupsActivity extends MainActivity {
 
                 });
 
+            }
+            @Override
+            public void onError(VolleyError error){
+                System.out.println();
             }
 
         });

@@ -9,4 +9,5 @@ public class GroupMessage {
     public String message;
     public String name;
     public int user_id;
+    public int group_id;
 }
