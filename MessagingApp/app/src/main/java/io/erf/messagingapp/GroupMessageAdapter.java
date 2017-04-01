@@ -3,6 +3,7 @@ package io.erf.messagingapp;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,11 +50,23 @@ public class GroupMessageAdapter extends BaseAdapter {
 
     public void add(GroupMessage message){
         //check here to make sure message isn't already in list
-        for (int i = 0; i<messageList.size(); i++){
-            if (messageList.get(i).id == message.id)
-                return;
+        if (!message.failed ){
+            for (int i = 0; i<messageList.size(); i++) {
+                if (messageList.get(i).id == message.id)
+                    return;
+            }
         }
         messageList.add(message);
+        notifyDataSetChanged();
+    }
+
+    public void purgeFailed(){
+        ArrayList<GroupMessage> tempList = new ArrayList<>();
+        for (int i = 0; i<messageList.size(); i++) {
+            if (!messageList.get(i).failed)
+                tempList.add(messageList.get(i));
+        }
+        messageList = tempList;
         notifyDataSetChanged();
     }
     @Override
@@ -75,7 +88,8 @@ public class GroupMessageAdapter extends BaseAdapter {
 
         GroupMessage message = (GroupMessage) getItem(position);
         holder.bodyView.setText(message.message);
-
+        holder.senderView.setTextColor(Color.BLACK);
+        holder.bodyView.setTextColor(Color.BLACK);
         if (message.user_id == sharedPref.getInt("USER_ID", -1)) {
             holder.senderView.setGravity(Gravity.END);
             holder.bodyView.setGravity(Gravity.END);
@@ -86,6 +100,11 @@ public class GroupMessageAdapter extends BaseAdapter {
             holder.senderView.setGravity(Gravity.START);
             holder.bodyView.setGravity(Gravity.START);
         }
+        if (message.failed){
+            holder.senderView.setTextColor(Color.RED);
+            holder.bodyView.setTextColor(Color.RED);
+        }
+
         return convertView;
 
     }

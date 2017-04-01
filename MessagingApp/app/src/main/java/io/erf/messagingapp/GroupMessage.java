@@ -5,6 +5,7 @@ package io.erf.messagingapp;
  */
 
 public class GroupMessage {
+    public boolean failed;
     public int id;
     public String message;
     public String name;

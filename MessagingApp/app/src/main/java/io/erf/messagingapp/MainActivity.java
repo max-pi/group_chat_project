@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     static Integer USER_ID;
     static ArrayList<Integer> GROUPS;
     SharedPreferences sharedPref;
-    BroadcastReceiver receiver;
+    static BroadcastReceiver receiver;
     public static Context context;
     static boolean disableReceiver = false;
 
@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
                 new IntentFilter("notification")
         );
+    }
+    @Override
+    protected void onPause(){
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver((receiver));
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
                 if (intent.getAction().equals("connection")) {
                     Boolean s = intent.getBooleanExtra("CONNECTED", false);
                     if (s) {
-                        setTitle("Connected");
+                        getSupportActionBar().setTitle("Connected");
                     } else {
-                        setTitle("Not Connected");
+                        getSupportActionBar().setTitle("Not Connected");
                     }
                 }
                 else {
@@ -199,8 +204,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onErrorResponse(VolleyError error) {
 
                         // Error handling
-                        System.out.println("Something went wrong!");
                         error.printStackTrace();
+                        callback.onError(error);
 
 
                     }

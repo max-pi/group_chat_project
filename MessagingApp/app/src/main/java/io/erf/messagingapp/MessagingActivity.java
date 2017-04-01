@@ -29,6 +29,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
 
 import static io.erf.messagingapp.MainActivity.MakeRequest;
 
@@ -40,6 +43,7 @@ public class MessagingActivity extends AppCompatActivity {
     Button leaveGroupButton;
     SharedPreferences sharedPref;
     BroadcastReceiver receiver;
+    LinkedList<JSONArray> failedMessageQueue;
 
     public BroadcastReceiver createReceiver(){
         return new BroadcastReceiver() {
@@ -48,6 +52,11 @@ public class MessagingActivity extends AppCompatActivity {
                 if (intent.getAction().equals("connection")) {
                     Boolean s = intent.getBooleanExtra("CONNECTED", false);
                     if (s) {
+                        if (failedMessageQueue != null){
+                            for (int i = 0; i<failedMessageQueue.size(); i++){
+                                sendMessage(failedMessageQueue.poll());
+                            }
+                        }
                         setTitle("Connected");
                     } else {
                         setTitle("Not Connected");
@@ -94,6 +103,7 @@ public class MessagingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messaging);
         String groupName = (String) getIntent().getStringExtra("NAME");
+        failedMessageQueue = new LinkedList<JSONArray>();
         groupID = (Integer) getIntent().getIntExtra("ID", -1);
         messageAdapter = new GroupMessageAdapter(this, new ArrayList<GroupMessage>());
         messagesView = (ListView) findViewById(R.id.messages_view);
@@ -130,7 +140,7 @@ public class MessagingActivity extends AppCompatActivity {
                 try {
                     jo.put("Body", message);
                     jo.put("GroupId", groupID);
-                    jo.put("UserId", MainActivity.USER_ID);
+                    jo.put("UserId", sharedPref.getInt("USER_ID", MainActivity.USER_ID));
                 }
                 catch (JSONException e) {
                     System.out.println(e);
@@ -230,7 +240,24 @@ public class MessagingActivity extends AppCompatActivity {
             }
             @Override
             public void onError(VolleyError error){
-                System.out.println();
+                EditText EditMessage = (EditText)findViewById(R.id.message);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(EditMessage.getWindowToken(), 0);
+                failedMessageQueue.add(postData);
+                GroupMessage message = new GroupMessage();
+                try {
+                    message.failed = true;
+                    message.id= -1;
+                    message.name = sharedPref.getString("NAME", "");
+                    message.message = postData.getJSONObject(0).getString("Body");
+                    message.user_id = postData.getJSONObject(0).getInt("UserId");
+                    message.group_id = groupID;
+                } catch (JSONException e) {
+                    System.out.println(e);
+                }
+                messageAdapter.add(message);
+
+                //notify it failed?
             }
 
         });
@@ -273,6 +300,7 @@ public class MessagingActivity extends AppCompatActivity {
         MakeRequest("https://erf.io/group/messages/" + groupID, MainActivity.Method.GET, null, new MainActivity.VolleyCallback() {
                     @Override
                     public void onSuccess(JSONArray response) {
+                        messageAdapter.purgeFailed();
                         for (int i = 0; i < response.length(); i++) {
                             GroupMessage message = new GroupMessage();
                             try {
