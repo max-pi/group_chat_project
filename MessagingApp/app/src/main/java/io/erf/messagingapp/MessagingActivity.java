@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 
@@ -236,10 +237,12 @@ public class MessagingActivity extends AppCompatActivity {
                 EditText EditMessage = (EditText)findViewById(R.id.message);
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(EditMessage.getWindowToken(), 0);
-
+//                Toast.makeText(getApplicationContext(), "Message sent", Toast.LENGTH_LONG).show();
             }
             @Override
             public void onError(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Message failed to send. It will be delivered when connection is restored.", Toast.LENGTH_LONG)
+                        .show();
                 EditText EditMessage = (EditText)findViewById(R.id.message);
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(EditMessage.getWindowToken(), 0);
@@ -256,8 +259,8 @@ public class MessagingActivity extends AppCompatActivity {
                     System.out.println(e);
                 }
                 messageAdapter.add(message);
+                messagesView.setSelection(messageAdapter.getCount() - 1);
 
-                //notify it failed?
             }
 
         });
