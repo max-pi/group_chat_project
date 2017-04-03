@@ -12,25 +12,26 @@ import (
 var SUCCESS_MESSAGE = "[{\"Success\": true}]";
 
 // handlers for the api calls
-// TODO: remove all ParseForm stuff
 
 func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hi there, I love %s! \n", r.URL.Path[1:])
 }
 
 func handler_status(w http.ResponseWriter, r *http.Request) {
+    //log.Println("status")
     //TODO: check for notifications here?
 
     fmt.Fprintf(w, SUCCESS_MESSAGE)
 }
 
 func handler_app_link(w http.ResponseWriter, r *http.Request) {
+    log.Println("app")
     // TODO: redirect to the app store link
     fmt.Fprintf(w, "app store link:")
 
 }
 
 func handler_group_all(w http.ResponseWriter, r *http.Request) {
+    log.Println("all groups")
 
     all_groups := get_group_all()
 
@@ -45,6 +46,8 @@ func handler_group_all(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_one(w http.ResponseWriter, r *http.Request) {
+    log.Println("one group")
+
     if r.Method != "GET" {
       // only allow GET requests
       return
@@ -70,6 +73,8 @@ func handler_group_one(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_new(w http.ResponseWriter, r *http.Request) {
+    log.Println("new group")
+
     if r.Method != "POST" {
       // only allow POST requests
       return
@@ -101,6 +106,8 @@ func handler_group_new(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_delete(w http.ResponseWriter, r *http.Request) {
+    log.Println("delete group")
+
     if r.Method != "POST" {
       // only allow POST requests
       return
@@ -119,6 +126,9 @@ func handler_group_delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_join(w http.ResponseWriter, r *http.Request) {
+    log.Println("join group")
+
+
     if r.Method != "POST" {
       // only allow POST requests
       return
@@ -144,6 +154,8 @@ func handler_group_join(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_kick(w http.ResponseWriter, r *http.Request) {
+    log.Println("kick")
+
     if r.Method != "POST" {
       // only allow POST requests
       return
@@ -170,6 +182,8 @@ func handler_group_kick(w http.ResponseWriter, r *http.Request) {
 
 
 func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
+    log.Println("new or rename user")
+
     if r.Method != "POST" {
       // only allow POST requests
       return
@@ -222,6 +236,8 @@ func handler_user_new_or_rename(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_messages(w http.ResponseWriter, r *http.Request) {
+    log.Println("messages")
+
     // GET request
 
     params := strings.Split(r.URL.Path,"/")
@@ -241,6 +257,8 @@ func handler_group_messages(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_group_messages_send(w http.ResponseWriter, r *http.Request) {
+    log.Println("send message")
+
     if r.Method != "POST" {
       // only allow POST requests
       return
@@ -275,6 +293,8 @@ func getURLParam(path string, prefix string) []string {
 }
 
 func handler_notifications(w http.ResponseWriter, r *http.Request) {
+    //log.Println("notifications")
+
     params := strings.Split(r.URL.Path,"/")
     user_id := params[len(params)-1] // gets trailing part
     user_id_int, err := strconv.Atoi(user_id)
@@ -292,6 +312,8 @@ func handler_notifications(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler_groups_for_user(w http.ResponseWriter, r *http.Request) {
+    log.Println("groups for user")
+
     params := strings.Split(r.URL.Path,"/")
     user_id := params[len(params)-1] // gets trailing part
     user_id_int, err := strconv.Atoi(user_id)
@@ -307,7 +329,6 @@ func handler_groups_for_user(w http.ResponseWriter, r *http.Request) {
 
     fmt.Fprintf(w, string(text))
 }
-
 
 // startup
 

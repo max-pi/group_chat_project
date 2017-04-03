@@ -76,7 +76,8 @@ func get_group_all() []Group {
     result = append(result, Group{id, name, nil})
   }
 
-
+  rows.Close();
+  db.Close();
   return result;
 }
 
@@ -92,6 +93,7 @@ func get_group_with_id(group_id int) Group {
 
   db.QueryRow("select * from message_group where id = ?", group_id).Scan(&id, &name, &icon)
 
+  db.Close();
   return Group{id, name, get_group_members(group_id)};
 }
 
@@ -123,6 +125,8 @@ func get_group_members(group_id int) []User {
     result = append(result, User{id, name})
   }
 
+  rows.Close();
+  db.Close();
   return result;
 }
 
@@ -136,6 +140,7 @@ func create_group(name string) Group {
 
   group_id, _ := result.LastInsertId();
 
+  db.Close();
   return Group{group_id, name, nil};
 }
 
@@ -149,6 +154,7 @@ func delete_group(group_id int) {
   	log.Fatal(err.Error())
   }
 
+  db.Close();
 }
 
 func create_user(name string) User {
@@ -162,6 +168,7 @@ func create_user(name string) User {
   }
   user_id, _ := result.LastInsertId();
 
+  db.Close();
   return User{user_id, name};
 }
 
@@ -173,6 +180,7 @@ func rename_user(user_id int64, name string) User {
   	log.Fatal(err.Error())
   }
 
+  db.Close();
   return User{user_id, name};
 }
 
@@ -184,6 +192,7 @@ func join_group(group_id int, user_id int) {
     log.Fatal(err.Error())
   }
 
+  db.Close();
 }
 
 func kick_user(group_id int, user_id int) {
@@ -194,6 +203,7 @@ func kick_user(group_id int, user_id int) {
     log.Fatal(err.Error())
   }
 
+  db.Close();
 }
 
 func get_messages(group_id int) []Message {
@@ -202,7 +212,7 @@ func get_messages(group_id int) []Message {
   // list of all the groups
   var result = []Message{};
 
-  rows, errs := db.Query("select m.id, m.body, m.message_group_id, m.user_id, user.name from message as m left join user ON (m.user_id=user.id ) where message_group_id =  ?", group_id)
+  rows, errs := db.Query("select m.id, m.body, m.message_group_id, m.user_id, user.name from message as m left join user ON (m.user_id=user.id ) where message_group_id =  ? order by m.id asc", group_id)
 
   if(errs != nil) {
     // rip
@@ -225,6 +235,8 @@ func get_messages(group_id int) []Message {
     result = append(result, Message{id, body, group_id, user_id, name})
   }
 
+  rows.Close();
+  db.Close();
   return result;
 }
 
@@ -256,6 +268,7 @@ func create_message(body string, group_id int, user_id int64) int64 {
     log.Fatal(err.Error())
   }
 
+  db.Close();
   return message_id;
 }
 
@@ -295,6 +308,9 @@ func get_notifications(user_id int) []Notification {
   if result == nil {
     return []Notification{}
   }
+
+  rows.Close();
+  db.Close();
   return result;
 }
 
@@ -324,16 +340,13 @@ func get_groups_for_user(user_id int) []Group {
     result = append(result, Group{id, name, nil})
   }
 
+  rows.Close();
+  db.Close();
   return result;
 }
 
 
 // setup methods
-
-func mysql_test() {
-
-
-}
 
 func get_db() *sql.DB {
   // Create an sql.DB and check for errors
